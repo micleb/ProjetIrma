@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import irmaDBCredentials
 import os
 import re
 
@@ -28,11 +27,14 @@ for file_number, config_file in enumerate(config_files):
     # File size
     properties["KERNEL_SIZE"][file_number] = str(os.path.getsize(config_folder + config_file))
 
+keys_line = ""
+value_lines = [""]*file_count
 for (k,v) in properties.items():
-    values = k
-    for va in v:
-        values += "," + va
+    keys_line += k + ","
+    for i in range(file_count):
+        value_lines[i] += v[i] + ","
 
-    print(values)
-
+print(keys_line)
+for line in value_lines:
+    print(line)
 
