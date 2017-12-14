@@ -3,7 +3,7 @@
 cwd=`pwd`
 mkdir -p configs
 cd $1
-for i in `seq 1 10000`;
+for i in `seq 1 10`;
 do
 #Faire ces actions tant qu'on a pas generer le bon nombre de .config
 echo "config numero" $i 1>&2

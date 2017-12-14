@@ -59,7 +59,7 @@ def getFromDB():
         # Get all .configs that successfully compiled
         query = ("SELECT config_file, core_size, compilation_time FROM TuxML WHERE compilation_time > -1")
 
-        cursor.execute(query);
+        cursor.execute(query)
         results = cursor.fetchall()
         cursor.close()
 
