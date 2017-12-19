@@ -4,6 +4,9 @@ library(rpart)
 library(rpart.plot)
 library(randomForest)
 library(caret)
+library(gbm)
+library(dplyr)
+library(randomForestExplainer)
 
 # TODO we assume that a res.csv exists (typically a CSV extracted from the database)
 res <- read.csv("/Users/macher1/Documents/SANDBOX/csvTuxml/ProjetIrma/csvgen/res3.csv") 
@@ -86,11 +89,47 @@ splitdf <- function(dataframe, seed=NULL) {
   list(trainset=trainset,testset=testset)
 }
 
-NTREE = 10
+NTREE = 1000
 
 mkRandomForest <- function(dat) {
   # mtry <- (ncol(dat) - 7) # 7: because we excluse non predictor variables! => BAGGING (m=p)
-  return (randomForest (KERNEL_SIZE~.-COMPILE_TIME, data=dat,importance=TRUE,ntree=NTREE,keep.forest=TRUE,na.action=na.exclude))
+  return (randomForest (KERNEL_SIZE~CONFIG_SFC_FALCON+CONFIG_SENSORS_LTC4245+CONFIG_DEBUG_INFO_REDUCED+CONFIG_KEYBOARD_DLINK_DIR685+CONFIG_DEBUG_INFO_SPLIT+CONFIG_SENSORS_TMP103
+                        +CONFIG_SND_OSSEMUL+CONFIG_SOUND_OSS_CORE+                                    
+                          CONFIG_SCSI_FUTURE_DOMAIN+CONFIG_NET_VENDOR_NVIDIA+CONFIG_MEGARAID_LEGACY+CONFIG_UBSAN_SANITIZE_ALL                                 
+                        +CONFIG_DEBUG_INFO+CONFIG_GDB_SCRIPTS+CONFIG_ROCKETPORT+CONFIG_HID_SENSOR_HUMIDITY+CONFIG_REGULATOR_LP873X+CONFIG_ACPI_CMPC
+                        +CONFIG_MODULES+CONFIG_STRICT_MODULE_RWX+CONFIG_RANDOMIZE_BASE+CONFIG_X86_NEED_RELOCS+CONFIG_SCSI_CXGB3_ISCSI+CONFIG_RTLWIFI
+                        , data=dat,importance=TRUE,ntree=NTREE,keep.forest=TRUE,na.action=na.exclude))
+}
+
+mkBoosting <- function(dat) {
+  return(
+    gbm(KERNEL_SIZE~.-COMPILE_TIME, 
+        data=dat,distribution="gaussian",n.tree=100)
+  )
+}
+
+plotFtImportance <- function(rtree) {
+  
+  impPlot <- rtree$variable.importance %>%
+    data_frame(variable = names(.), importance = .) %>%
+    mutate(importance = importance / sum(importance)) %>%
+    top_n(20) %>%
+    ggplot(aes(x = importance,
+               y = reorder(variable, importance))) +
+    geom_point() +
+    labs(title = "Importance of configuration options ",
+         subtitle = "(20 most relevant, Rpart, scaled to sum 1)") +
+    theme_bw() +
+    theme(axis.title.y = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5),
+          axis.line = element_line(colour = "grey"),
+          panel.grid.major = element_blank(), panel.border = element_blank()) +
+    geom_segment(aes(x = -Inf, y = reorder(variable, importance),
+                     xend = importance, yend = reorder(variable, importance)),
+                 size = 0.2)
+  
+  print(impPlot)
 }
 
 predComputation <- function(iris) {
@@ -102,24 +141,58 @@ predComputation <- function(iris) {
   training <- splits$trainset
   testing <- splits$testset
   
-  rtree <-  mkRandomForest(training)
-    # rpart(KERNEL_SIZE~.-COMPILE_TIME, data=training,
+  rtree <- # mkBoosting(training)
+    mkRandomForest(training)
+    # KERNEL_SIZE~CONFIG_DEBUG_INFO+CONFIG_DRM_UDL
+    # KERNEL_SIZE~.-COMPILE_TIME
+    # rpart(KERNEL_SIZE~CONFIG_SFC_FALCON+CONFIG_SENSORS_LTC4245+CONFIG_DEBUG_INFO_REDUCED+CONFIG_KEYBOARD_DLINK_DIR685+CONFIG_DEBUG_INFO_SPLIT+CONFIG_SENSORS_TMP103
+    #       +CONFIG_SND_OSSEMUL+CONFIG_SOUND_OSS_CORE+                                    
+    #       CONFIG_SCSI_FUTURE_DOMAIN+CONFIG_NET_VENDOR_NVIDIA+CONFIG_MEGARAID_LEGACY+CONFIG_UBSAN_SANITIZE_ALL                                 
+    #       +CONFIG_DEBUG_INFO+CONFIG_GDB_SCRIPTS+CONFIG_ROCKETPORT+CONFIG_HID_SENSOR_HUMIDITY+CONFIG_REGULATOR_LP873X+CONFIG_ACPI_CMPC
+    #       +CONFIG_MODULES+CONFIG_STRICT_MODULE_RWX+CONFIG_RANDOMIZE_BASE+CONFIG_X86_NEED_RELOCS+CONFIG_SCSI_CXGB3_ISCSI+CONFIG_RTLWIFI
+    #       , data=training,
     #   method = "anova",
     #   parms = list(split = "information"),
-    #   control = rpart.control(minsplit = 2,
-    #                           minbucket = 8,
-    #                           #maxdepth = maxDepth,
-    #                           #cp = complexity,
-    #                           usesurrogate = 0,
-    #                           maxsurrogate = 0))
+    #    control = rpart.control(minsplit = 2,
+    #                            minbucket = 8,
+    #   #                         #maxdepth = maxDepth,
+    #   #                         #cp = complexity,
+    #                            usesurrogate = 0,
+    #                            maxsurrogate = 0)
+    #  )
 
   #rpart.plot(rtree)
+  # plotFtImportance(rtree)
+  imp <- varImp(rtree)
+  varImpPlot(rtree)
+  plot(rtree)
+  print(plot_min_depth_distribution(rtree))
+  print(plot_multi_way_importance(rtree, size_measure = "no_of_nodes"))
+  # print(plot_min_depth_interactions(rtree))
+  # print (rownames(imp)[order(imp$Overall, decreasing=TRUE)])
+  
+  # cp <- as_tibble(rtree$cptable) %>%
+  #   filter(xerror <= min(xerror) + xstd) %>%
+  #   filter(xerror == max(xerror)) %>%
+  #   select(CP) %>%
+  #   unlist()
+  # 
+  # rtree <- prune(rtree, cp = cp)
+  # rpart.plot(rtree)
+  # plotFtImportance(rtree)
   # print(rtree)
-  # print(varImp(rtree))
-  #print(varImp(rtree)[1:20,])
+  #print(varImp(rtree))
+  #print(varImp(rtree))
+  
+  
+  # print(rtree$variable.importance)
+  
+  # plot(imp, top=20)
+  
+ 
   #print(sort(varImp(rtree), decreasing = TRUE))
   # what are the important variables (via permutation)
-  varImpPlot(rtree, type=1)
+  
   
   #predict the outcome of the testing data
   predicted <- predict(rtree, newdata=testing)
@@ -137,4 +210,3 @@ predKernelSizes <- predComputation(res)
 predKernelSizes$d <- abs((predKernelSizes$act - predKernelSizes$prd) / predKernelSizes$act) 
 mae <- ((100 / length(predKernelSizes$d)) * sum(predKernelSizes$d))
 print(paste("MAE", mae))
-
