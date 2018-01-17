@@ -1,55 +1,7 @@
 #!/usr/bin/python3
 
-import irmaDBCredentials
-import http.client
-import json
-import base64
 import os
 import re
-
-'''
-try:
-    # Initiate HTTP connection
-    conn_http = http.client.HTTPConnection(irmaDBCredentials.addr)
-
-    # JWT Authentication
-    auth_header = {
-        'Content-Type':'application/json',
-        'Accept':'application/json'
-    }
-
-    auth_body = json.dumps(irmaDBCredentials.user)
-
-    conn_http.request("POST", "/api/authenticate", auth_body, auth_header)
-    auth_response = conn_http.getresponse()
-    if auth_response.status == 200:
-        auth_id  = json.loads(auth_response.read().decode())['id_token']
-    else:
-        print("[-] db authentication failed : {}".format(auth_response.reason))
-        exit(-1)
-
-    # Get all entries
-    headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer ' + auth_id
-    }
-
-    conn_http.request("GET", "/api/i-rma-dbs", None, headers)
-    # Status check
-    r1 = conn_http.getresponse()
-    if r1.status == 200:
-        print ("[+] Successfully got all data")
-        print (r1.read())
-    else:
-        print  ("[-] Can't get data from db : {} - {}".format(r1.status, r1.reason))
-        print (r1.read())
-
-except http.client.HTTPException as err:
-    if err == http.client.NotConnected: print("[-] Can't connect to db")
-    else: print("[-] Unknown db error : {}".format(err))
-    exit(-1)
-'''
 
 config_folder = "configs/"
 
@@ -75,11 +27,14 @@ for file_number, config_file in enumerate(config_files):
     # File size
     properties["KERNEL_SIZE"][file_number] = str(os.path.getsize(config_folder + config_file))
 
+keys_line = ""
+value_lines = [""]*file_count
 for (k,v) in properties.items():
-    values = k
-    for va in v:
-        values += "," + va
+    keys_line += k + ","
+    for i in range(file_count):
+        value_lines[i] += v[i] + ","
 
-    print(values)
-
+print(keys_line)
+for line in value_lines:
+    print(line)
 
