@@ -8,18 +8,17 @@ import tuxml_depLog as tdepl
 
 
 def clean_output(output):
-    # TODO
+    result = ""
     expression1=r"^[a-z]([a-z0-9]*[.-]?)*[ ]?:"
     expression2=r"^[0-9]:([a-z0-9]*[ .-]?)*:"
+    
+    for line in output.splitlines():
+        if re.search(expression2,line):
+            result += line.split(":")[1] + "\n"
+        elif re.search(expression1,line):
+            result += line.split(":")[0] + "\n"
 
-    if re.search(expression2,line):
-        package = line.split(":")[1]
-    elif re.search(expression1,line):
-        package = line.split(":")[0]
-    else:
-        package = ""
-
-    return package
+    return result
 
 
 # author : LEBRETON Mickael, LE FLEM Erwan, MERZOUK Fahim
