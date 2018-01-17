@@ -4,6 +4,7 @@ import shutil
 import re
 import tuxml_common as tcom
 import tuxml_settings as tset
+import tuxml_depLog as tdepl
 
 
 def parse_line(line):
@@ -80,7 +81,7 @@ def build_dependencies(missing_files, missing_packages):
             tdepl.log_status(mf, True)
 
     tcom.pprint(0, "Exporting missing package resolution log file")
-    tdepl.export_as_csv()        
+    tdepl.export_as_csv()
     tcom.pprint(0, "Dependencies built")
     return 0
 
