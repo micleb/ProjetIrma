@@ -7,7 +7,8 @@ import tuxml_settings as tset
 import tuxml_depLog as tdepl
 
 
-def parse_line(line):
+def clean_output(output):
+    # TODO
     expression1=r"^[a-z]([a-z0-9]*[.-]?)*[ ]?:"
     expression2=r"^[0-9]:([a-z0-9]*[ .-]?)*:"
 
@@ -45,7 +46,7 @@ def build_dependencies(missing_files, missing_packages):
         if tset.VERBOSE > 0:
             print(" " * 3 + mf)
 
-        if (tset.PKG_MANAGER is "pacman"):
+        if tset.PKG_MANAGER is "pacman":
             mf = mf.replace("/", " ")
 
         try:
@@ -54,6 +55,9 @@ def build_dependencies(missing_files, missing_packages):
             tcom.pprint(1, "Unable to find the missing package(s)")
             return -1
 
+        if tset.PKG_MANAGER in ["dnf", "yum"]:
+            output = clean_output(output)
+
         # Sometimes the  output gives  several packages. The  program takes  the
         # first one and check if the package is already installed. If not, tuxml
         # installs it. Else it installs the next one
@@ -61,8 +65,7 @@ def build_dependencies(missing_files, missing_packages):
         i = 0
         status = 0
         while i < len(lines) and status == 0:
-            # package = lines[i].split(":")[0]
-            package = parse_line(lines[i])
+            package = lines[i].split(":")[0]
             # 0: package already installed
             # 1: package not installed
             status = subprocess.call([cmds[tset.PKG_MANAGER][1].format(package)], stdout=tset.OUTPUT, stderr=tset.OUTPUT, shell=True)
