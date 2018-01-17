@@ -9,9 +9,9 @@ import tuxml_depLog as tdepl
 
 def clean_output(output):
     result = ""
-    expression1=r"^[a-z]([a-z0-9]*[.-]?)*[ ]?:"
-    expression2=r"^[0-9]:([a-z0-9]*[ .-]?)*:"
-    
+    expression1=r"^[a-z]([a-z0-9]*[._+-]?)*[ ]:"
+    expression2=r"^[0-9]:[a-z]([a-z0-9]*[._+-]?)*[ ]:"
+
     for line in output.splitlines():
         if re.search(expression2,line):
             result += line.split(":")[1] + "\n"
