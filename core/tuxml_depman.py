@@ -1,8 +1,21 @@
 #!/bin/python
 import subprocess
 import shutil
+import re
 import tuxml_common as tcom
 import tuxml_settings as tset
+
+
+def parseLine(line):
+    expression1=r"^[a-z]([a-z0-9]*[.-]?)*[ ]?:"
+    expression2=r"^[0-9]:([a-z0-9]*[ .-]?)*:"
+
+    if re.search(expression2,line):
+        paquage=line.split(":")[1]
+    elif re.search(expression1,line):
+        paquage=line.split(":")[0]
+
+    return paquage
 
 
 # author : LEBRETON Mickael, LE FLEM Erwan, MERZOUK Fahim
@@ -45,7 +58,8 @@ def build_dependencies(missing_files, missing_packages):
         i = 0
         status = 0
         while i < len(lines) and status == 0:
-            package = lines[i].split(":")[0]
+            # package = lines[i].split(":")[0]
+            package = parseLine(lines[i])
             # 0: package already installed
             # 1: package not installed
             status = subprocess.call([cmds[tset.PKG_MANAGER][1].format(package)], stdout=tset.OUTPUT, stderr=tset.OUTPUT, shell=True)
