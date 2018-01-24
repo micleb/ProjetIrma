@@ -233,12 +233,14 @@ def main():
 
     # launching compilation
     start_time = time.time()
+    install_time = 0
     status = -1
     while status == -1:
         missing_packages = []
         missing_files    = []
 
         if compilation() == -1:
+            start_install_time = time.time()
             if log_analysis(missing_files, missing_packages) == 0:
                 if install_missing_packages(missing_files, missing_packages) == 0:
                     tcom.pprint(0, "Restarting compilation")
@@ -247,16 +249,20 @@ def main():
                     status = -3
             else:
                 status = -2
+
+            install_time += time.time() - start_install_time
+
+            if (tset.VERBOSE > 1):
+                tcom.pprint(3, "TuxML has spent {} to install missing packages".format(time.strftime("%H:%M:%S", time.gmtime(install_time))))
         else:
             status = 0
     end_time = time.time()
 
     # testing kernel
     if status == 0:
-        status = end_time - start_time
+        status = end_time - start_time - install_time
         compile_time = time.strftime("%H:%M:%S", time.gmtime(status))
         tcom.pprint(0, "Successfully compiled in {}".format(compile_time))
-        # TODO tests
     else:
         tcom.pprint(1, "Unable to compile using this KCONFIG_FILE, status={}".format(status))
 
