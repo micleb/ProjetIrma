@@ -49,6 +49,8 @@ def build_dependencies(missing_files, missing_packages):
             output = subprocess.check_output([cmds[tset.PKG_MANAGER][0].format(mf)], shell=True, universal_newlines=True)
         except subprocess.CalledProcessError:
             tcom.pprint(1, "Unable to find the missing package(s)")
+            tcom.pprint(0, "Exporting missing package resolution log file")
+            tdepl.export_as_csv()
             return -1
 
         # Sometimes the  output gives  several packages. The  program takes  the
@@ -73,12 +75,14 @@ def build_dependencies(missing_files, missing_packages):
         if i > len(lines) and status == 0:
             tdepl.log_status(mf, False)
             tcom.pprint(1, "Unable to find the missing package(s)")
+            tcom.pprint(0, "Exporting missing package resolution log file")
+            tdepl.export_as_csv()
             return -1
         else:
             tdepl.log_status(mf, True)
 
     tcom.pprint(0, "Exporting missing package resolution log file")
-    tdepl.export_as_csv()        
+    tdepl.export_as_csv()
     tcom.pprint(0, "Dependencies built")
     return 0
 
