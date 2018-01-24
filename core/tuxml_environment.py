@@ -115,16 +115,14 @@ def get_hardware_details():
     return hw
 
 
-# TODO enlever la parenthèse à la fin
 def __get_libc_version():
         result = subprocess.check_output(["ldd", "--version"], universal_newlines=True)
-        return result.strip().split(' ')[3].split('\n')[0]
+        return result.strip().split(' ')[3].split('\n')[0].split(")")
 
 
-# TODO enlever la parenthèse à la fin
 def __get_gcc_version():
         result = subprocess.check_output(["gcc", "--version"], universal_newlines=True)
-        return result.strip().split(' ')[2].split('\n')[0]
+        return result.strip().split(' ')[2].split('\n')[0].split(")")
 
 
 def __get_tuxml_version():
